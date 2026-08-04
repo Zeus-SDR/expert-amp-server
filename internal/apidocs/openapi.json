@@ -141,7 +141,7 @@
           "Health"
         ],
         "summary": "Get build version metadata",
-        "description": "Returns build metadata for the running binary. Values are injected at build time when release scripts use -ldflags; development builds report version/channel as dev.",
+        "description": "Returns build and distribution provenance for the running binary. Values are injected at build time when release scripts use -ldflags; development builds report version/channel as dev.",
         "responses": {
           "200": {
             "$ref": "#/components/responses/VersionResponse"
@@ -2774,6 +2774,18 @@
           "channel": {
             "type": "string",
             "description": "Update/release channel such as dev, stable, or nightly."
+          },
+          "distribution": {
+            "type": "string",
+            "description": "Distribution identifier; official Zeus builds report zeus."
+          },
+          "upstreamVersion": {
+            "type": "string",
+            "description": "Pinned upstream Expert Amp Server tag used as the distribution base."
+          },
+          "upstreamCommit": {
+            "type": "string",
+            "description": "Pinned upstream Expert Amp Server commit used as the distribution base."
           }
         },
         "required": [

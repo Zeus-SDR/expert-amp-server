@@ -1,4 +1,8 @@
-# Expert Amp Server
+# Zeus Expert Amp Server
+
+This repository is the official Zeus SDR distribution for running Expert Amp Server on an Apache Labs ANAN G2/G2 Ultra or another trusted-LAN Linux host. It preserves the complete upstream amplifier server and adds Zeus identification, pinned provenance, static Linux release bundles, a hardened service, and operator-run lifecycle scripts.
+
+For a G2 installation, start with [README_G2.md](README_G2.md). This distribution is based on [FtlC-ian/expert-amp-server](https://github.com/FtlC-ian/expert-amp-server); see [PROVENANCE.md](PROVENANCE.md), [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md), and the reproduced [third-party license texts](THIRD_PARTY_LICENSES.txt).
 
 Expert Amp Server is a small Go server for local-network monitoring and control of SPE Expert amplifiers. Run it near the amp, open it from a browser, and get a practical amp panel without needing the vendor Windows app on the operating computer.
 
@@ -53,7 +57,7 @@ This software controls RF hardware. It is believed to match the documented and o
 ## Quick start for local development
 
 ```bash
-git clone https://github.com/FtlC-ian/expert-amp-server.git
+git clone https://github.com/Zeus-SDR/expert-amp-server.git
 cd expert-amp-server
 go run ./cmd/server -addr :8088 -poll-interval 125ms
 ```
@@ -119,14 +123,14 @@ Start here:
 - [Release readiness checklist](docs/release/READINESS.md)
 - [Changelog](CHANGELOG.md)
 
-## Build release artifacts
+## Build Zeus release artifacts
 
 ```bash
-TARGETS="linux/arm64" VERSION="$(git describe --tags --always --dirty)" packaging/scripts/build-release.sh
+VERSION="$(git describe --tags --always --dirty)" CHANNEL=dev bash packaging/scripts/build-release.sh
 ```
 
-The release helper injects build metadata into the server binary and copies the sample config plus systemd unit into `dist/`.
+The release helper produces checksum-listed, static Linux bundles for ARM64 (the primary G2 target), ARMv7, and AMD64. Each archive includes the sample config, hardened systemd unit, provenance, notices, and manifest-verifying install, upgrade, and uninstall scripts.
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+MIT. The upstream copyright and license are retained in [LICENSE](LICENSE); distribution and dependency attribution are in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md).

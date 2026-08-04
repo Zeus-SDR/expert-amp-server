@@ -1,0 +1,74 @@
+name: Official Zeus release
+
+on:
+  push:
+    tags:
+      - "zeus-v*"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Test, build, and publish
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out tagged source
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Go 1.26.5
+        uses: actions/setup-go@924ae3a1cded613372ab5595356fb5720e22ba16 # v6
+        with:
+          go-version: "1.26.5"
+          cache: true
+
+      - name: Test
+        run: go test ./...
+
+      - name: Check packaging scripts
+        run: |
+          bash -n packaging/scripts/*.sh
+          bash packaging/scripts/package-common_test.sh
+
+      - name: Build static Linux release bundles
+        env:
+          VERSION: ${{ github.ref_name }}
+          COMMIT: ${{ github.sha }}
+          CHANNEL: stable
+          DISTRIBUTION: zeus
+          UPSTREAM_VERSION: v0.4.5
+          UPSTREAM_COMMIT: 373fc5b5b9e851ae14f89c1c40c4e64816a51284
+        run: bash packaging/scripts/build-release.sh
+
+      - name: Verify release assets
+        run: |
+          (cd dist && sha256sum --check --strict SHA256SUMS)
+          for archive in dist/expert-amp-server-zeus_linux_*.tar.gz; do
+            tar -tzf "$archive"
+          done
+          for binary in arm64 armv7 amd64; do
+            archive="dist/expert-amp-server-zeus_linux_${binary}.tar.gz"
+            work="$(mktemp -d)"
+            tar -xzf "$archive" -C "$work"
+            file "$work/expert-amp-server-zeus/bin/expert-amp-server" | grep -F "statically linked"
+            rm -rf -- "$work"
+          done
+
+      - name: Publish tagged GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME"
+          dist/SHA256SUMS
+          dist/expert-amp-server-zeus_linux_arm64.tar.gz
+          dist/expert-amp-server-zeus_linux_armv7.tar.gz
+          dist/expert-amp-server-zeus_linux_amd64.tar.gz
+          --verify-tag
+          --title "Zeus Expert Amp Server $GITHUB_REF_NAME"
+          --generate-notes

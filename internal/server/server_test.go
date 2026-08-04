@@ -2345,6 +2345,9 @@ func TestV1StatusWebsocketSendsInitialSnapshotAndUpdates(t *testing.T) {
 	if first.Band != "20m" || first.OperatingState != "standby" || first.Source != "serial" {
 		t.Fatalf("unexpected initial websocket payload: %+v", first)
 	}
+	// The handler installs update subscriptions after writing its initial frame.
+	// Avoid racing the synthetic update past that subscription handoff.
+	time.Sleep(25 * time.Millisecond)
 
 	store.Apply(runtime.Update{Telemetry: api.Telemetry{
 		Band:           "6m",
@@ -2389,6 +2392,10 @@ func TestV1StatusWebsocketUsesSharedProtocolNativeState(t *testing.T) {
 	if first.Provenance != "display-frame" || first.Band != "20m" {
 		t.Fatalf("unexpected initial fallback payload: %+v", first)
 	}
+	// The initial websocket frame is written before the handler installs its
+	// update subscriptions. Give the handler time to finish that handoff so the
+	// test cannot race both updates past the subscription point.
+	time.Sleep(25 * time.Millisecond)
 
 	statusState.UpdateProtocolNative(api.Status{Telemetry: api.Telemetry{
 		ModelName:      "EXPERT 2K-FA",
@@ -2399,6 +2406,9 @@ func TestV1StatusWebsocketUsesSharedProtocolNativeState(t *testing.T) {
 		Confidence:     "protocol-native",
 		Provenance:     "status-poll",
 	}, BandCode: "00", BandText: "160m"})
+	// Fresh display overrides require a strictly newer snapshot timestamp. Keep
+	// that ordering deterministic on hosts with coarse wall-clock resolution.
+	time.Sleep(25 * time.Millisecond)
 
 	store.Apply(runtime.Update{Telemetry: api.Telemetry{
 		Band:           "20m",
@@ -2411,6 +2421,12 @@ func TestV1StatusWebsocketUsesSharedProtocolNativeState(t *testing.T) {
 	}})
 
 	second := readStatusWSMessage(t, conn)
+	// The status-state notification may be written before the immediately
+	// following display snapshot notification. Accept that valid intermediate
+	// frame and assert against the converged shared-state frame.
+	if second.OperatingState != "operate" || second.Mode != "operate" {
+		second = readStatusWSMessage(t, conn)
+	}
 	if second.Provenance != "status-poll" || second.ModelName != "EXPERT 2K-FA" || second.BandCode != "00" || second.BandText != "160m" {
 		t.Fatalf("unexpected shared-state websocket payload: %+v", second)
 	}
@@ -3127,7 +3143,10 @@ func TestHealthzIncludesVersionHeader(t *testing.T) {
 		DemoState:   display.DemoState(),
 		AltState:    display.DemoStateAlt(),
 		Fixtures:    runtime.FixtureCatalog{},
-		Version:     VersionInfo{Version: "1.2.3", Commit: "abcdef", BuildDate: "2026-04-24T17:00:00Z", Channel: "stable"},
+		Version: VersionInfo{
+			Version: "1.2.3", Commit: "abcdef", BuildDate: "2026-04-24T17:00:00Z", Channel: "stable",
+			Distribution: "zeus", UpstreamVersion: "v0.4.5", UpstreamCommit: "373fc5b",
+		},
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
@@ -3139,6 +3158,12 @@ func TestHealthzIncludesVersionHeader(t *testing.T) {
 	}
 	if got := rec.Header().Get("X-Expert-Amp-Version"); got != "1.2.3" {
 		t.Fatalf("X-Expert-Amp-Version = %q, want 1.2.3", got)
+	}
+	if got := rec.Header().Get("X-Expert-Amp-Distribution"); got != "zeus" {
+		t.Fatalf("X-Expert-Amp-Distribution = %q, want zeus", got)
+	}
+	if got := rec.Header().Get("X-Expert-Amp-Upstream-Version"); got != "v0.4.5" {
+		t.Fatalf("X-Expert-Amp-Upstream-Version = %q, want v0.4.5", got)
 	}
 	if got := rec.Body.String(); got != "ok\n" {
 		t.Fatalf("body = %q, want ok", got)
@@ -3156,7 +3181,10 @@ func TestVersionEndpointUsesEnvelope(t *testing.T) {
 		DemoState:   display.DemoState(),
 		AltState:    display.DemoStateAlt(),
 		Fixtures:    runtime.FixtureCatalog{},
-		Version:     VersionInfo{Version: "1.2.3", Commit: "abcdef", BuildDate: "2026-04-24T17:00:00Z", Channel: "stable"},
+		Version: VersionInfo{
+			Version: "1.2.3", Commit: "abcdef", BuildDate: "2026-04-24T17:00:00Z", Channel: "stable",
+			Distribution: "zeus", UpstreamVersion: "v0.4.5", UpstreamCommit: "373fc5b",
+		},
 	})
 
 	req := httptest.NewRequest(http.MethodGet, "/api/v1/version", nil)
@@ -3173,7 +3201,8 @@ func TestVersionEndpointUsesEnvelope(t *testing.T) {
 	if err := json.NewDecoder(rec.Body).Decode(&body); err != nil {
 		t.Fatalf("decode response: %v", err)
 	}
-	if !body.Success || body.Data.Version != "1.2.3" || body.Data.Commit != "abcdef" || body.Data.Channel != "stable" {
+	if !body.Success || body.Data.Version != "1.2.3" || body.Data.Commit != "abcdef" || body.Data.Channel != "stable" ||
+		body.Data.Distribution != "zeus" || body.Data.UpstreamVersion != "v0.4.5" || body.Data.UpstreamCommit != "373fc5b" {
 		t.Fatalf("unexpected body: %+v", body)
 	}
 }

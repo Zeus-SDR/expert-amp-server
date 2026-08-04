@@ -24,10 +24,13 @@ import (
 )
 
 type VersionInfo struct {
-	Version   string `json:"version"`
-	Commit    string `json:"commit,omitempty"`
-	BuildDate string `json:"buildDate,omitempty"`
-	Channel   string `json:"channel,omitempty"`
+	Version         string `json:"version"`
+	Commit          string `json:"commit,omitempty"`
+	BuildDate       string `json:"buildDate,omitempty"`
+	Channel         string `json:"channel,omitempty"`
+	Distribution    string `json:"distribution,omitempty"`
+	UpstreamVersion string `json:"upstreamVersion,omitempty"`
+	UpstreamCommit  string `json:"upstreamCommit,omitempty"`
 }
 
 type Options struct {
@@ -154,7 +157,14 @@ func NewHandler(opts Options) http.Handler {
 		if !allowMethod(w, r, http.MethodGet) {
 			return
 		}
-		w.Header().Set("X-Expert-Amp-Version", selectedVersion(opts).Version)
+		version := selectedVersion(opts)
+		w.Header().Set("X-Expert-Amp-Version", version.Version)
+		if version.Distribution != "" {
+			w.Header().Set("X-Expert-Amp-Distribution", version.Distribution)
+		}
+		if version.UpstreamVersion != "" {
+			w.Header().Set("X-Expert-Amp-Upstream-Version", version.UpstreamVersion)
+		}
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte("ok\n"))
 	})
