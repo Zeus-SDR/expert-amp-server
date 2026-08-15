@@ -1,5 +1,7 @@
 # Raspberry Pi install notes
 
+For the packaged Zeus SDR G2 distribution, use the checksum-first operator procedure in [`README_G2.md`](../README_G2.md). The notes below remain the upstream-oriented manual/development installation reference.
+
 These notes describe the current known-good shape for running `expert-amp-server` on a Raspberry Pi or similar Linux host near the SPE Expert amplifier. This is not a polished public installer yet; it is the handoff path to make the current deployment repeatable.
 
 ## Assumptions

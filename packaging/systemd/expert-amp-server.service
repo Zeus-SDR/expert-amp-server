@@ -1,21 +1,48 @@
 [Unit]
-Description=Expert Amp Server
-Documentation=https://github.com/FtlC-ian/expert-amp-server
-After=network-online.target
+Description=Zeus Expert Amp Server
+Documentation=https://github.com/Zeus-SDR/expert-amp-server/blob/main/README_G2.md
 Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
 
 [Service]
 Type=simple
 User=expert-amp
 Group=expert-amp
 SupplementaryGroups=dialout
-ExecStart=/usr/local/bin/expert-amp-server -config /var/lib/expert-amp-server/config.json
+StateDirectory=expert-amp-server
+StateDirectoryMode=0750
+ExecStart=/usr/local/lib/expert-amp-server/expert-amp-server -config /var/lib/expert-amp-server/config.json
 Restart=always
 RestartSec=5
+TimeoutStopSec=15
+KillSignal=SIGTERM
+UMask=0077
+
+# The service needs the station LAN and the configured USB serial device. It
+# receives no filesystem write access outside its private state directory.
 NoNewPrivileges=true
 PrivateTmp=true
-ProtectSystem=full
+ProtectSystem=strict
 ProtectHome=true
+ProtectHostname=true
+ProtectClock=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectKernelLogs=true
+ProtectControlGroups=true
+ProtectProc=invisible
+ProcSubset=pid
+RestrictSUIDSGID=true
+RestrictRealtime=true
+RestrictNamespaces=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+RemoveIPC=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
 ReadWritePaths=/var/lib/expert-amp-server
 
 [Install]

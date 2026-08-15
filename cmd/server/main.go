@@ -32,10 +32,13 @@ import (
 var webFS embed.FS
 
 var (
-	Version   = "dev"
-	Commit    = ""
-	BuildDate = ""
-	Channel   = "dev"
+	Version         = "dev"
+	Commit          = ""
+	BuildDate       = ""
+	Channel         = "dev"
+	Distribution    = "zeus"
+	UpstreamVersion = "v0.4.5"
+	UpstreamCommit  = "373fc5b5b9e851ae14f89c1c40c4e64816a51284"
 )
 
 func main() {
@@ -96,7 +99,7 @@ func run(addr, configPath string, pollInterval time.Duration, lcdFlagDebug bool,
 		}
 	}()
 
-	log.Printf("expert-amp-server %s starting (commit=%s buildDate=%s channel=%s)", Version, Commit, BuildDate, Channel)
+	log.Printf("expert-amp-server %s starting (distribution=%s upstream=%s commit=%s buildDate=%s channel=%s)", Version, Distribution, UpstreamVersion, Commit, BuildDate, Channel)
 	log.Printf("expert-amp-server server listening on %s (config: %s)", srv.Addr, snapshot.Path)
 	err = srv.ListenAndServe()
 	if requestRestart.requested() && (err == nil || errors.Is(err, http.ErrServerClosed)) {
@@ -345,8 +348,11 @@ func newServerWithUploader(cfg *config.Manager, pollInterval time.Duration, stop
 		MenuDebugUploader:  uploader,
 		ButtonTransport:    buttonTransport,
 		WakeTransport:      wakeTransport,
-		Version:            server.VersionInfo{Version: Version, Commit: Commit, BuildDate: BuildDate, Channel: Channel},
-		RestartServer:      signal.request,
+		Version: server.VersionInfo{
+			Version: Version, Commit: Commit, BuildDate: BuildDate, Channel: Channel,
+			Distribution: Distribution, UpstreamVersion: UpstreamVersion, UpstreamCommit: UpstreamCommit,
+		},
+		RestartServer: signal.request,
 	})
 
 	return handler, snapshot, poller, serialSource, signal

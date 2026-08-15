@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Expert Amp</title>
+  <title>Zeus Expert Amp Server</title>
   <style>
     :root {
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -1130,6 +1130,98 @@
       .panel-cluster-1k3 { min-width: 0; width: 100%; }
       .btn-grid-3x3 { grid-template-columns: repeat(4, 1fr); }
     }
+
+    /* Zeus distribution skin. The amplifier controls, API wiring, safety
+       behavior, and accessible LCD remain the complete upstream surface. */
+    :root {
+      --zeus-bg: #070b10;
+      --zeus-panel: #101720;
+      --zeus-panel-raised: #151f2a;
+      --zeus-line: #293746;
+      --zeus-line-strong: #3b5369;
+      --zeus-text: #dce8f2;
+      --zeus-muted: #7f96aa;
+      --zeus-blue: #61b9f4;
+      --zeus-cyan: #86ddff;
+      --zeus-amber: #f6bd4a;
+    }
+    :root, body {
+      background: var(--zeus-bg);
+      color: var(--zeus-text);
+    }
+    body {
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 18% -10%, rgba(45, 118, 166, 0.22), transparent 34rem),
+        linear-gradient(180deg, #0b1118 0, var(--zeus-bg) 28rem);
+    }
+    .wrap { max-width: 1040px; }
+    .page-header {
+      align-items: center;
+      padding: 12px 14px;
+      border: 1px solid var(--zeus-line);
+      border-radius: 10px;
+      background: linear-gradient(180deg, rgba(24, 35, 47, 0.96), rgba(12, 18, 26, 0.96));
+      box-shadow: 0 16px 42px rgba(0, 0, 0, 0.28), inset 0 1px rgba(255, 255, 255, 0.035);
+    }
+    .zeus-brand-lockup { display: flex; align-items: center; gap: 11px; min-width: 0; }
+    .zeus-mark {
+      display: grid;
+      place-items: center;
+      width: 38px;
+      height: 38px;
+      flex: 0 0 auto;
+      border: 1px solid #3f83ad;
+      border-radius: 8px;
+      color: var(--zeus-cyan);
+      background: linear-gradient(145deg, #19354a, #0c1822);
+      box-shadow: inset 0 1px rgba(255,255,255,.09), 0 0 18px rgba(73, 174, 236, .12);
+      font: 800 22px/1 ui-sans-serif, system-ui, sans-serif;
+      letter-spacing: -.08em;
+    }
+    .zeus-kicker {
+      color: var(--zeus-blue);
+      font-size: .66rem;
+      font-weight: 800;
+      letter-spacing: .2em;
+    }
+    .page-header h1 { color: #f1f7fb; font-size: 1.08rem; letter-spacing: .035em; }
+    .header-sub { color: var(--zeus-muted); }
+    .tab-nav { border-bottom-color: var(--zeus-line); }
+    .tab-btn { color: var(--zeus-muted); }
+    .tab-btn:hover { color: var(--zeus-text); }
+    .tab-btn.active { color: var(--zeus-cyan); border-bottom-color: var(--zeus-blue); }
+    .settings-card, .card, .setup-card {
+      background: var(--zeus-panel);
+      border-color: var(--zeus-line);
+      box-shadow: inset 0 1px rgba(255,255,255,.025);
+    }
+    .settings-card-title, .card-title, .operator-card-title, .cluster-section-title { color: var(--zeus-muted); }
+    .settings-input, input, select, .settings-runtime { background: #0a1017; border-color: var(--zeus-line); color: var(--zeus-text); }
+    .settings-input:focus, input:focus, select:focus { border-color: var(--zeus-blue); }
+    .settings-save-btn, button.submit { background: #183f5a; border-color: #2e6d94; }
+    .settings-save-btn:hover, button.submit:hover { background: #205474; }
+    .panel-1k3 {
+      background: linear-gradient(180deg, #151d26, #0c1219);
+      border-color: var(--zeus-line-strong);
+      box-shadow: 0 18px 46px rgba(0,0,0,.42), inset 0 1px rgba(255,255,255,.045);
+    }
+    .panel-1k3-brand { color: var(--zeus-blue); }
+    .panel-1k3-model { color: var(--zeus-cyan); }
+    .display-bezel { border-color: #304252; box-shadow: inset 0 0 0 1px #050708, 0 0 24px rgba(102,190,243,.06); }
+    .pb-safe { background: #142838; border-color: #2a526d; color: #cae9fa; }
+    .pb-safe:hover:not(:disabled) { background: #1a354a; border-color: var(--zeus-blue); }
+    .zeus-attribution {
+      margin-top: 15px;
+      padding: 14px 10px 2px;
+      border-top: 1px solid var(--zeus-line);
+      color: #607689;
+      font-size: .68rem;
+      line-height: 1.5;
+      text-align: center;
+    }
+    .zeus-attribution strong { color: var(--zeus-muted); }
+    .zeus-attribution a { color: #82badc; }
   </style>
 </head>
 <body>
@@ -1137,7 +1229,13 @@
 
     <!-- Page header -->
     <div class="page-header">
-      <h1 id="page-title">Expert Amp</h1>
+      <div class="zeus-brand-lockup">
+        <span class="zeus-mark" aria-hidden="true">Z</span>
+        <div>
+          <div class="zeus-kicker">ZEUS SDR</div>
+          <h1 id="page-title">Expert Amp Server</h1>
+        </div>
+      </div>
       <div class="header-right">
         <span class="header-sub" id="header-model">SPE Expert</span>
         <span id="source-badge" class="source-tag source-unknown">–</span>
@@ -1916,6 +2014,14 @@
       </div>
 
     </div><!-- /view-settings -->
+
+    <footer class="zeus-attribution">
+      <strong>Zeus Expert Amp Server</strong> · official Zeus SDR G2 distribution<br>
+      Based on
+      <a href="https://github.com/FtlC-ian/expert-amp-server" target="_blank" rel="noreferrer">Expert Amp Server</a>
+      by Ian Ferrell · upstream amplifier behavior retained ·
+      <a href="https://github.com/Zeus-SDR/expert-amp-server/blob/main/PROVENANCE.md" target="_blank" rel="noreferrer">source and provenance</a>
+    </footer>
 
   </div><!-- /wrap -->
 

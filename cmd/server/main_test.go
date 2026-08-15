@@ -258,6 +258,47 @@ func TestWatchUIUsesRuntimeRenderByDefault(t *testing.T) {
 	}
 }
 
+func TestWatchUIIdentifiesZeusDistributionAndUpstream(t *testing.T) {
+	mgr, err := config.NewManager(filepath.Join(t.TempDir(), "expert-amp-server.json"), ":8088")
+	if err != nil {
+		t.Fatalf("NewManager: %v", err)
+	}
+	h, _, _, _, _ := newServer(mgr, 250*time.Millisecond, func() {})
+
+	req := httptest.NewRequest(http.MethodGet, "/", nil)
+	res := httptest.NewRecorder()
+	h.ServeHTTP(res, req)
+
+	if res.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", res.Code, http.StatusOK)
+	}
+	body := res.Body.String()
+	for _, required := range []string{
+		"<title>Zeus Expert Amp Server</title>",
+		">ZEUS SDR<",
+		">Expert Amp Server<",
+		"official Zeus SDR G2 distribution",
+		"https://github.com/FtlC-ian/expert-amp-server",
+		"upstream amplifier behavior retained",
+	} {
+		if !strings.Contains(body, required) {
+			t.Errorf("Zeus distribution branding missing %q", required)
+		}
+	}
+}
+
+func TestCompiledVersionDefaultsIdentifyZeusUpstreamBase(t *testing.T) {
+	if Distribution != "zeus" {
+		t.Fatalf("Distribution = %q, want zeus", Distribution)
+	}
+	if UpstreamVersion != "v0.4.5" {
+		t.Fatalf("UpstreamVersion = %q, want v0.4.5", UpstreamVersion)
+	}
+	if UpstreamCommit != "373fc5b5b9e851ae14f89c1c40c4e64816a51284" {
+		t.Fatalf("UpstreamCommit = %q, want pinned v0.4.5 commit", UpstreamCommit)
+	}
+}
+
 func TestWatchUIHasPanelLayoutAndOperatorAlternate(t *testing.T) {
 	mgr, err := config.NewManager(filepath.Join(t.TempDir(), "expert-amp-server.json"), ":8088")
 	if err != nil {

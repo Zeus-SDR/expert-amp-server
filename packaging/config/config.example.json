@@ -1,5 +1,5 @@
 {
-  "serialPort": "/dev/serial/by-id/usb-FTDI_FT232R_USB_UART_XXXXXXXX-if00-port0",
+  "serialPort": "",
   "listenAddress": ":8088",
   "pollingMode": "both",
   "pollIntervalMs": 125,
